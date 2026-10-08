@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <defs>
+    <linearGradient id="calculax-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2563eb"/>
+      <stop offset="60%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#1d4ed8"/>
+    </linearGradient>
+    <linearGradient id="accent-glow" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#60a5fa"/>
+      <stop offset="100%" stop-color="#93c5fd"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#1e40af" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <!-- Background squircle -->
+  <rect width="48" height="48" rx="14" fill="url(#calculax-grad)" filter="url(#shadow)"/>
+  
+  <!-- Subtle inner border overlay -->
+  <rect x="0.75" y="0.75" width="46.5" height="46.5" rx="13.25" stroke="#ffffff" stroke-opacity="0.25" stroke-width="1.5"/>
+
+  <!-- Stylized Geometric "C" + Precision Grid Pattern -->
+  <!-- Top Arc of 'C' -->
+  <path d="M34 16C32 13 28 11.5 23.5 11.5C16.5 11.5 12 16.8 12 24C12 31.2 16.5 36.5 23.5 36.5C28 36.5 32 35 34 32" stroke="#ffffff" stroke-width="4.2" stroke-linecap="round"/>
+
+  <!-- Precision Mathematical Cross-bar / Equals in center -->
+  <line x1="21" y1="21" x2="33" y2="21" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round"/>
+  <line x1="21" y1="27" x2="33" y2="27" stroke="url(#accent-glow)" stroke-width="3.5" stroke-linecap="round"/>
+
+  <!-- Sparkle / Intelligence Accent Dot -->
+  <circle cx="33.5" cy="14.5" r="2.2" fill="#93c5fd"/>
+</svg>

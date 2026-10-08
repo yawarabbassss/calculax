@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 52" fill="none">
+  <defs>
+    <linearGradient id="logo-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2563eb"/>
+      <stop offset="60%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#1d4ed8"/>
+    </linearGradient>
+    <linearGradient id="logo-accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#60a5fa"/>
+      <stop offset="100%" stop-color="#93c5fd"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Icon Symbol -->
+  <g transform="translate(4, 4)">
+    <rect width="44" height="44" rx="12" fill="url(#logo-grad)"/>
+    <rect x="0.75" y="0.75" width="42.5" height="42.5" rx="11.25" stroke="#ffffff" stroke-opacity="0.25" stroke-width="1.5"/>
+    <path d="M31 15C29.2 12.3 25.5 11 21.5 11C15 11 11 15.8 11 22C11 28.2 15 33 21.5 33C25.5 33 29.2 31.7 31 29" stroke="#ffffff" stroke-width="3.8" stroke-linecap="round"/>
+    <line x1="19" y1="19" x2="30" y2="19" stroke="#ffffff" stroke-width="3.2" stroke-linecap="round"/>
+    <line x1="19" y1="25" x2="30" y2="25" stroke="url(#logo-accent)" stroke-width="3.2" stroke-linecap="round"/>
+    <circle cx="30.5" cy="13.5" r="2" fill="#93c5fd"/>
+  </g>
+
+  <!-- Wordmark "Calculax" -->
+  <text x="58" y="31" font-family="Inter, system-ui, sans-serif" font-weight="800" font-size="22" letter-spacing="-0.5" fill="#0f172a">
+    Calcula<tspan fill="#2563eb">x</tspan>
+  </text>
+  
+  <!-- Tagline -->
+  <text x="59" y="43" font-family="Inter, system-ui, sans-serif" font-weight="600" font-size="8.5" letter-spacing="0.5" fill="#64748b">
+    SMART CALCULATORS
+  </text>
+</svg>
