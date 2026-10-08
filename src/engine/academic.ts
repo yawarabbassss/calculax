@@ -1,5 +1,5 @@
 import { CalculationResult, GradingScale } from '../types';
-import { getGradingScale } from './gradingScales';
+import { getGradingScale, getGradePointFromLetter } from './gradingScales';
 
 export interface CourseInput {
   id: string;
@@ -50,11 +50,10 @@ export function calculateSemesterGPA(
   let totalQualityPoints = 0;
 
   const breakdownRows = validCourses.map(course => {
-    let gp = course.gradePoint;
-    if (gp === undefined || isNaN(gp)) {
-      const match = scale.grades.find(g => g.letter.toUpperCase() === course.grade.toUpperCase());
-      gp = match ? match.gradePoint : 0;
-    }
+    // Resolve grade point via universal resolver
+    const gp = course.gradePoint !== undefined && !isNaN(course.gradePoint)
+      ? course.gradePoint
+      : getGradePointFromLetter(scale, course.grade);
 
     const qp = course.creditHours * gp;
     totalCredits += course.creditHours;
@@ -136,11 +135,10 @@ export function calculateCumulativeCGPA(
     totalCoursesCount += validCourses.length;
 
     validCourses.forEach(c => {
-      let gp = c.gradePoint;
-      if (gp === undefined || isNaN(gp)) {
-        const match = scale.grades.find(g => g.letter.toUpperCase() === c.grade.toUpperCase());
-        gp = match ? match.gradePoint : 0;
-      }
+      const gp = c.gradePoint !== undefined && !isNaN(c.gradePoint)
+        ? c.gradePoint
+        : getGradePointFromLetter(scale, c.grade);
+
       const qp = c.creditHours * gp;
       semCredits += c.creditHours;
       semQualityPoints += qp;
@@ -245,6 +243,20 @@ export function calculatePercentage(
         statusType: 'error',
         statusMessage: 'Obtained marks cannot be negative.',
         stats: [],
+        breakdown: []
+      };
+    }
+
+    if (obtainedMarks > totalMarks) {
+      return {
+        primaryValue: `${((obtainedMarks / totalMarks) * 100).toFixed(2)}%`,
+        primaryLabel: 'Calculated Percentage',
+        statusType: 'warning',
+        statusMessage: 'Note: Obtained marks exceed total maximum marks.',
+        stats: [
+          { label: 'Obtained Marks', value: obtainedMarks },
+          { label: 'Total Marks', value: totalMarks }
+        ],
         breakdown: []
       };
     }
@@ -468,12 +480,12 @@ export function calculateRequiredFinalMarks(params: {
 }
 
 /**
- * CGPA to Percentage Conversion (HEC, Standard Multiplier, AICTE)
+ * CGPA to Percentage Conversion (HEC Official Equivalence, Standard Multiplier, AICTE)
  */
 export function convertCgpaToPercentage(params: {
   cgpa: number;
   maxGpa: number;
-  method: 'hec_pakistan' | 'linear' | 'aicte';
+  method: 'hec_pakistan' | 'hec_sliding' | 'linear' | 'aicte';
 }): CalculationResult {
   const { cgpa, maxGpa = 4.0, method } = params;
 
@@ -490,21 +502,45 @@ export function convertCgpaToPercentage(params: {
   let formulaStr = '';
   let noteStr = '';
 
-  if (method === 'hec_pakistan') {
-    // HEC standard formula:
-    // If GPA is on 4.0 scale: Percentage = (CGPA / 4.0) * 100 with HEC official grading conversion equivalency
-    // In Pakistan, HEC equivalence formula for 4.0 scale generally maps:
-    // 4.0 = 85%-100%, 3.66 = 80-84%, 3.0 = 71-74%, 2.0 = 60-63%, 1.0 = 50-53%
-    // Standard linear percentage:
+  if (method === 'hec_sliding') {
+    // Official HEC Implementation Guidelines Sliding Interpolation
+    if (cgpa >= 4.0) {
+      percentage = 85.0 + ((cgpa - 4.0) * 15.0); // 85% to 100%
+      percentage = Math.min(100, Math.max(85, percentage));
+    } else if (cgpa >= 3.66) {
+      percentage = 80.0 + ((cgpa - 3.66) / (4.0 - 3.66)) * 4.9;
+    } else if (cgpa >= 3.33) {
+      percentage = 75.0 + ((cgpa - 3.33) / (3.66 - 3.33)) * 4.9;
+    } else if (cgpa >= 3.00) {
+      percentage = 71.0 + ((cgpa - 3.00) / (3.33 - 3.00)) * 3.9;
+    } else if (cgpa >= 2.66) {
+      percentage = 68.0 + ((cgpa - 2.66) / (3.00 - 2.66)) * 2.9;
+    } else if (cgpa >= 2.33) {
+      percentage = 64.0 + ((cgpa - 2.33) / (2.66 - 2.33)) * 3.9;
+    } else if (cgpa >= 2.00) {
+      percentage = 60.0 + ((cgpa - 2.00) / (2.33 - 2.00)) * 3.9;
+    } else if (cgpa >= 1.66) {
+      percentage = 57.0 + ((cgpa - 1.66) / (2.00 - 1.66)) * 2.9;
+    } else if (cgpa >= 1.33) {
+      percentage = 54.0 + ((cgpa - 1.33) / (1.66 - 1.33)) * 2.9;
+    } else if (cgpa >= 1.00) {
+      percentage = 50.0 + ((cgpa - 1.00) / (1.33 - 1.00)) * 3.9;
+    } else {
+      percentage = (cgpa / 1.0) * 49.0;
+    }
+    formulaStr = `HEC Sliding Scale Table Interpolation (CGPA ${cgpa})`;
+    noteStr = 'HEC official implementation guidelines for uniform semester system grading table.';
+  } else if (method === 'hec_pakistan') {
+    // HEC standard proportional equivalence
     percentage = (cgpa / maxGpa) * 100;
     formulaStr = `(${cgpa} ÷ ${maxGpa}) × 100`;
     noteStr = 'HEC standard proportion formula for official equivalence conversion.';
   } else if (method === 'aicte') {
-    // AICTE formula: (CGPA - 0.75) * 10 (on 10 scale) or (CGPA * 9.5)
+    // AICTE formula: (CGPA - 0.75) * 10
     percentage = (cgpa - 0.75) * 10;
     if (percentage < 0) percentage = 0;
     formulaStr = `(${cgpa} - 0.75) × 10`;
-    noteStr = 'AICTE (All India Council for Technical Education) standard conversion equation.';
+    noteStr = 'AICTE standard conversion equation.';
   } else {
     // Linear
     percentage = (cgpa / maxGpa) * 100;
@@ -520,7 +556,7 @@ export function convertCgpaToPercentage(params: {
     stats: [
       { label: 'Input CGPA', value: cgpa.toFixed(2), unit: `/ ${maxGpa}` },
       { label: 'Equivalent %', value: `${percentage.toFixed(2)}%` },
-      { label: 'Conversion Model', value: method === 'hec_pakistan' ? 'HEC Pakistan' : method === 'aicte' ? 'AICTE' : 'Standard' }
+      { label: 'Conversion Model', value: method === 'hec_sliding' ? 'HEC Policy Table' : method === 'hec_pakistan' ? 'HEC Proportional' : method === 'aicte' ? 'AICTE' : 'Standard' }
     ],
     breakdown: [
       {
